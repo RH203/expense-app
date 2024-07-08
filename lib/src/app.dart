@@ -1,5 +1,6 @@
-import 'package:expense_app/src/pages/expense_app.dart';
+import 'package:expense_app/src/constant/constant.dart';
 import 'package:flutter/material.dart';
+import 'package:expense_app/src/router/router.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -9,7 +10,8 @@ class App extends StatelessWidget {
     return const MaterialApp(
       title: "Expense app",
       debugShowCheckedModeBanner: false,
-      home: ExpenseApp(),
+      onGenerateRoute: Routers.generateRoute,
+      initialRoute: homeRoute,
     );
   }
 }
