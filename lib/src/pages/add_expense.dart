@@ -1,5 +1,6 @@
 import 'package:expense_app/src/constant/constant.dart';
 import 'package:expense_app/src/models/expense.dart';
+import 'package:expense_app/src/store/chart_store.dart';
 import 'package:expense_app/src/store/expense_store.dart';
 import 'package:expense_app/src/widget/custom_text_field.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,6 @@ class _AddExpenseState extends State<AddExpense> {
                     if (value != null) {
                       setState(() {
                         dropdownValue = value;
-                        print(dropdownValue);
                       });
                     }
                   },
@@ -138,6 +138,9 @@ class _AddExpenseState extends State<AddExpense> {
                               Category.food,
                     );
                     context.read<ExpenseStore>().addValue(value);
+
+                    context.read<ChartStore>().addChart(dropdownValue);
+
                     titleController.clear();
                     amountController.clear();
 
