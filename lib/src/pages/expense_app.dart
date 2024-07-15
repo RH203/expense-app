@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:expense_app/src/constant/constant.dart';
-import 'package:expense_app/src/store/expense_store.dart';
 import 'package:expense_app/src/models/expense.dart';
+import 'package:expense_app/src/store/chart_store.dart';
+import 'package:expense_app/src/store/expense_store.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +31,23 @@ class _ExpenseAppState extends State<ExpenseApp> {
     }
   }
 
+  final Map<Category, String> dropDownCategory = {
+    Category.food: "food",
+    Category.leisure: "leisure",
+    Category.other: "other",
+    Category.travel: "travel",
+    Category.work: "work",
+  };
+
+  String getValueByKey(Map<Category, String> category, Category target) {
+    for (var entry in category.entries) {
+      if (entry.key == target) {
+        return entry.value;
+      }
+    }
+    return "";
+  }
+
   void _removeItem(Expense value) {
     context.read<ExpenseStore>().removeValue(value);
     Navigator.pop(context, true);
@@ -47,6 +63,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
 
   @override
   Widget build(BuildContext context) {
+    final chart = context.watch<ChartStore>().chart;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Expense app"),
@@ -66,9 +83,9 @@ class _ExpenseAppState extends State<ExpenseApp> {
             //! slivers only accept slivers widget
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 250,
+                height: 300,
                 child: BarChart(
-                  randomData(),
+                  randomData(chart),
                 ),
               ),
             ),
@@ -94,7 +111,12 @@ class _ExpenseAppState extends State<ExpenseApp> {
                                 child: const Text("No"),
                               ),
                               TextButton(
-                                onPressed: () => _removeItem(expense),
+                                onPressed: () {
+                                  _removeItem(expense);
+                                  Provider.of<ChartStore>(context).removeChart(
+                                      getValueByKey(
+                                          dropDownCategory, expense.category));
+                                },
                                 child: const Text("Yes"),
                               )
                             ],
@@ -167,32 +189,59 @@ BarChartGroupData makeGroupData(int x, double y) {
 
 Widget getYTitles(double value, TitleMeta meta) {
   const style = TextStyle(
-    color: Colors.white,
+    color: Colors.black,
     fontWeight: FontWeight.bold,
     fontSize: 14,
   );
 
-  return SideTitleWidget(
-    axisSide: meta.axisSide,
-    space: 8,
-    child: Text(value.toInt().toString(), style: style),
-  );
+  if (value == 0) {
+    return const Text('0', style: style);
+  } else if (value == 10) {
+    return const Text('2', style: style);
+  } else if (value == 20) {
+    return const Text('4', style: style);
+  } else if (value == 30) {
+    return const Text('6', style: style);
+  } else if (value == 40) {
+    return const Text('8', style: style);
+  } else if (value == 50) {
+    return const Text('10', style: style);
+  } else {
+    return const Text('', style: style);
+  }
 }
 
-BarChartData randomData() {
+Widget getXTitles(double value, TitleMeta meta) {
+  const style = TextStyle(
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontSize: 14,
+  );
+
+  if (value == 0) {
+    return const Text('1', style: style);
+  } else if (value == 10) {
+    return const Text('2', style: style);
+  } else if (value == 20) {
+    return const Text('3', style: style);
+  } else if (value == 30) {
+    return const Text('4', style: style);
+  } else if (value == 40) {
+    return const Text('5', style: style);
+  } else {
+    return const Text('', style: style);
+  }
+}
+
+BarChartData randomData(List<Map<String, int>> chart) {
   return BarChartData(
-    maxY: 300.0,
+    maxY: 100.0,
     barTouchData: BarTouchData(
       enabled: false,
     ),
     titlesData: const FlTitlesData(
       show: true,
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          getTitlesWidget: getYTitles,
-        ),
-      ),
+      bottomTitles: AxisTitles(),
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
@@ -213,10 +262,28 @@ BarChartData randomData() {
     borderData: FlBorderData(
       show: false,
     ),
-    barGroups: List.generate(
-      4,
-      (i) => makeGroupData(i, Random().nextInt(100).toDouble() + 10),
-    ),
+    barGroups: List.generate(5, (index) {
+      String key = index == 0
+          ? "food"
+          : index == 1
+              ? "travel"
+              : index == 2
+                  ? "leisure"
+                  : index == 3
+                      ? "work"
+                      : "other";
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: chart[index][key]!.toDouble(),
+            color: Colors.blue,
+            borderRadius: BorderRadius.zero,
+            width: 30,
+          ),
+        ],
+      );
+    }),
     gridData: const FlGridData(show: false),
   );
 }
