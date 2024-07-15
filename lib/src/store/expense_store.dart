@@ -11,6 +11,7 @@ class ExpenseStore with ChangeNotifier {
 
   void addValue(Expense value) {
     _list.add(value);
+
     notifyListeners();
   }
 
